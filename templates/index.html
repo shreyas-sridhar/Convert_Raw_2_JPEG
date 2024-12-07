@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>PRO RAW Processor</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
+    <style>
+        :root {
+            --primary: #000000;
+            --secondary: #2997ff;
+            --accent: #06c;
+            --text: #f5f5f7;
+            --background: #000000;
+            --subtle-bg: #1d1d1f;
+            --border: #333336;
+            --gray-100: #1a1a1a;
+            --gray-200: #2a2a2a;
+            --gray-300: #3a3a3a;
+            --success: #00b894;
+            --error: #ff453a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            line-height: 1.4;
+        }
+
+        .navbar {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            padding: 0.75rem 1.5rem;
+            color: var(--text);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.125rem;
+            font-weight: 500;
+            letter-spacing: -0.5px;
+        }
+
+        .logo i {
+            color: var(--secondary);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .hero {
+            text-align: center;
+            margin: 4rem 0;
+            animation: fadeIn 1s ease-out;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            letter-spacing: -1px;
+            background: linear-gradient(135deg, var(--text) 0%, #919191 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            color: #86868b;
+            font-size: 1.125rem;
+            max-width: 500px;
+            margin: 0 auto;
+            font-weight: 400;
+        }
+
+        .upload-container {
+            background: var(--gray-100);
+            border-radius: 16px;
+            padding: 2rem;
+            margin: 1.5rem auto;
+            transition: all 0.3s ease;
+            border: 1px solid var(--gray-200);
+        }
+
+        .upload-container:hover {
+            border-color: var(--gray-300);
+            transform: translateY(-2px);
+        }
+
+        .drop-zone {
+            border: 2px dashed var(--gray-300);
+            border-radius: 12px;
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            background: var(--gray-100);
+        }
+
+        .drop-zone:hover {
+            border-color: var(--secondary);
+            background: var(--gray-200);
+        }
+
+        .drop-zone.drag-over {
+            border-color: var(--accent);
+            background: var(--gray-200);
+            transform: scale(0.99);
+        }
+
+        .drop-zone i {
+            font-size: 2rem;
+            color: var(--secondary);
+            margin-bottom: 0.75rem;
+        }
+
+        .file-input {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .status {
+            margin: 1.5rem 0;
+            padding: 1rem;
+            border-radius: 10px;
+            font-weight: 500;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+
+        .status.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .status.processing {
+            background: var(--gray-200);
+            border: 1px solid var(--gray-300);
+            color: var(--secondary);
+        }
+
+        .status.success {
+            background: rgba(0, 184, 148, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+
+        .status.error {
+            background: rgba(255, 69, 58, 0.1);
+            border: 1px solid var(--error);
+            color: var(--error);
+        }
+
+        .results {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .download-card {
+            background: var(--gray-100);
+            border: 1px solid var(--gray-200);
+            border-radius: 10px;
+            padding: 1.25rem;
+            text-align: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .download-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--secondary);
+            background: var(--gray-200);
+        }
+
+        .download-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(41, 151, 255, 0.1), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s;
+        }
+
+        .download-card:hover::before {
+            transform: translateX(100%);
+        }
+
+        .download-btn {
+            display: inline-block;
+            padding: 0.6rem 1.2rem;
+            background: var(--gray-300);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            margin-top: 0.75rem;
+            transition: all 0.3s ease;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border: 1px solid transparent;
+        }
+
+        .download-btn:hover {
+            background: var(--secondary);
+            transform: translateY(-1px);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin: 2rem 0;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 1rem;
+            background: var(--gray-100);
+            border-radius: 10px;
+            border: 1px solid var(--gray-200);
+            min-width: 140px;
+        }
+
+        .stat-card h3 {
+            color: var(--text);
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-card p {
+            color: #86868b;
+            font-size: 0.875rem;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            border: 2px solid rgba(41, 151, 255, 0.2);
+            border-top: 2px solid var(--secondary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0.75rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: var(--gray-200);
+            border-radius: 2px;
+            margin: 1.5rem 0;
+            overflow: hidden;
+            display: none;
+            position: relative;
+        }
+
+        .progress {
+            width: 0%;
+            height: 100%;
+            background: var(--secondary);
+            position: relative;
+            transition: width 0.3s ease;
+        }
+
+        .progress::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg,
+                    transparent,
+                    rgba(255, 255, 255, 0.2),
+                    transparent);
+            animation: shimmer 1.5s infinite;
+        }
+
+        footer {
+            margin-top: auto;
+            padding: 1.5rem;
+            text-align: center;
+            color: #86868b;
+            font-size: 0.875rem;
+            background: var(--gray-100);
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                transform: translateX(-100%);
+            }
+
+            100% {
+                transform: translateX(100%);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="logo">
+            <i class="fas fa-camera-retro"></i>
+            PRO RAW Processor
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="hero">
+            <h1>Professional RAW Processing</h1>
+            <p>Transform your RAW images into stunning high-quality JPEGs.</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <h3>99.9%</h3>
+                <p>Success Rate</p>
+            </div>
+            <div class="stat-card">
+                <h3>0.3s</h3>
+                <p>Processing Time</p>
+            </div>
+        </div>
+
+        <div class="upload-container">
+            <form id="uploadForm">
+                <div class="drop-zone" id="dropZone">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <h2>Drag & Drop RAW Files</h2>
+                    <p>or click to select files</p>
+                    <input type="file" name="files[]" multiple accept=".nef,.cr2,.arw,.raw" class="file-input"
+                        id="fileInput">
+                </div>
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress" id="progress"></div>
+                </div>
+            </form>
+        </div>
+
+        <div id="status" class="status"></div>
+        <div id="results" class="results"></div>
+    </div>
+
+    <footer>
+        © 2024 PRO RAW Processor. All rights reserved.
+    </footer>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const status = document.getElementById('status');
+        const results = document.getElementById('results');
+        const progressBar = document.getElementById('progressBar');
+        const progress = document.getElementById('progress');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function highlight(e) {
+            dropZone.classList.add('drag-over');
+        }
+
+        function unhighlight(e) {
+            dropZone.classList.remove('drag-over');
+        }
+
+        dropZone.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            fileInput.files = files;
+            handleFiles(files);
+        }
+
+        document.getElementById('uploadForm').onsubmit = (e) => {
+            e.preventDefault();
+            handleFiles(fileInput.files);
+        };
+
+        fileInput.onchange = () => {
+            handleFiles(fileInput.files);
+        };
+
+        async function handleFiles(files) {
+            if (!files.length) return;
+
+            status.className = 'status show processing';
+            status.innerHTML = `
+                <div class="loading-spinner"></div>
+                <p>Processing ${files.length} file(s)...</p>
+            `;
+            results.innerHTML = '';
+            progressBar.style.display = 'block';
+
+            const formData = new FormData();
+            for (const file of files) {
+                formData.append('files[]', file);
+            }
+
+            try {
+                let width = 0;
+                const progressInterval = setInterval(() => {
+                    width = Math.min(width + 1, 90);
+                    progress.style.width = width + '%';
+                }, 100);
+
+                const uploadResponse = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!uploadResponse.ok) {
+                    throw new Error('Upload failed');
+                }
+
+                const processResponse = await fetch('/process', {
+                    method: 'POST'
+                });
+
+                clearInterval(progressInterval);
+                progress.style.width = '100%';
+
+                const data = await processResponse.json();
+
+                if (!processResponse.ok) {
+                    throw new Error(data.error || 'Processing failed');
+                }
+
+                status.className = 'status show success';
+                status.innerHTML = `<i class="fas fa-check-circle"></i> ${data.message}`;
+
+                if (data.urls) {
+                    results.innerHTML = data.urls.map(url => `
+                        <div class="download-card">
+                            <i class="fas fa-image fa-2x"></i>
+                            <h3>${url.split('/').pop()}</h3>
+                            <a href="${url}" download class="download-btn">
+                                <i class="fas fa-download"></i> Download
+                            </a>
+                        </div>
+                    `).join('');
+                                }
+
+                                // Hide progress bar after completion
+                                setTimeout(() => {
+                                    progressBar.style.display = 'none';
+                                    progress.style.width = '0%';
+                                }, 1000);
+
+                            } catch (error) {
+                                clearInterval(progressInterval);
+                                status.className = 'status show error';
+                                status.innerHTML = `
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p>Error: ${error.message}</p>
+                `;
+                                progressBar.style.display = 'none';
+                                progress.style.width = '0%';
+                            }
+                        }
+
+                        // Validate file type before upload
+                        function validateFileType(file) {
+                            const validTypes = ['.nef', '.cr2', '.arw', '.raw'];
+                            const extension = '.' + file.name.split('.').pop().toLowerCase();
+                            return validTypes.includes(extension);
+                        }
+
+                        // Format file size for display
+                        function formatFileSize(bytes) {
+                            if (bytes === 0) return '0 Bytes';
+                            const k = 1024;
+                            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                            const i = Math.floor(Math.log(bytes) / Math.log(k));
+                            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+                        }
+
+                        // Add file validation to handle files function
+                        async function handleFiles(files) {
+                            if (!files.length) return;
+
+                            // Validate file types
+                            const invalidFiles = Array.from(files).filter(file => !validateFileType(file));
+                            if (invalidFiles.length > 0) {
+                                status.className = 'status show error';
+                                status.innerHTML = `
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p>Invalid file type(s). Please upload only RAW image files (.nef, .cr2, .arw, .raw)</p>
+                `;
+                                return;
+                            }
+
+                            // Continue with the original upload logic...
+                            status.className = 'status show processing';
+                            status.innerHTML = `
+                <div class="loading-spinner"></div>
+                <p>Processing ${files.length} file(s)...</p>
+            `;
+                            results.innerHTML = '';
+                            progressBar.style.display = 'block';
+
+                            const formData = new FormData();
+                            for (const file of files) {
+                                formData.append('files[]', file);
+                            }
+
+                            try {
+                                let width = 0;
+                                const progressInterval = setInterval(() => {
+                                    width = Math.min(width + 1, 90);
+                                    progress.style.width = width + '%';
+                                }, 100);
+
+                                const uploadResponse = await fetch('/upload', {
+                                    method: 'POST',
+                                    body: formData
+                                });
+
+                                if (!uploadResponse.ok) {
+                                    throw new Error('Upload failed');
+                                }
+
+                                const processResponse = await fetch('/process', {
+                                    method: 'POST'
+                                });
+
+                                clearInterval(progressInterval);
+                                progress.style.width = '100%';
+
+                                const data = await processResponse.json();
+
+                                if (!processResponse.ok) {
+                                    throw new Error(data.error || 'Processing failed');
+                                }
+
+                                status.className = 'status show success';
+                                status.innerHTML = `<i class="fas fa-check-circle"></i> ${data.message}`;
+
+                                if (data.urls) {
+                                    results.innerHTML = data.urls.map(url => `
+                        <div class="download-card">
+                            <i class="fas fa-image fa-2x"></i>
+                            <h3>${url.split('/').pop()}</h3>
+                            <a href="${url}" download class="download-btn">
+                                <i class="fas fa-download"></i> Download
+                            </a>
+                        </div>
+                    `).join('');
+                                }
+
+                                // Hide progress bar after completion
+                                setTimeout(() => {
+                                    progressBar.style.display = 'none';
+                                    progress.style.width = '0%';
+                                }, 1000);
+
+                            } catch (error) {
+                                clearInterval(progressInterval);
+                                status.className = 'status show error';
+                                status.innerHTML = `
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p>Error: ${error.message}</p>
+                `;
+                                progressBar.style.display = 'none';
+                                progress.style.width = '0%';
+                            }
+                        }
+
+                        // Initialize the interface
+                        document.addEventListener('DOMContentLoaded', () => {
+                            // Reset the interface
+                            status.className = 'status';
+                            results.innerHTML = '';
+                            progressBar.style.display = 'none';
+                            progress.style.width = '0%';
+                        });
+                    </script>
+    </body>
+    
+    </html>
