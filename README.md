@@ -9,7 +9,7 @@ This application converts raw image files into JPEG format using Flask. It provi
 ## Installation
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/raw-image-converter.git
+   git clone https://github.com/shreyas-sridhar/raw-image-converter.git
    cd raw-image-converter
    ```
 
