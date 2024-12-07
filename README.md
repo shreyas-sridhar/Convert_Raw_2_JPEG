@@ -47,5 +47,3 @@ This application converts raw image files into JPEG format using Flask. It provi
 ## Contributing
 Feel free to fork the repository and submit pull requests with improvements or features.
 
-## License
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
