@@ -34,16 +34,6 @@ This application converts raw image files into JPEG format using Flask. It provi
 
 5. Download your processed JPEG files from the links provided.
 
-## Directory Structure
-```
-/raw-image-converter
-│
-├── app.py                # Main application file
-├── uploads/              # Directory for uploaded raw images
-├── outputs/              # Directory for converted JPEG images
-└── templates/            # HTML templates for rendering pages
-```
-
 ## Contributing
 Feel free to fork the repository and submit pull requests with improvements or features.
 
