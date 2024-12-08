@@ -153,4 +153,4 @@ def download_file(filename):
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()
-    app.run(debug=False, host='0.0.0.0', port=5000)
+    app.run(debug=False)
