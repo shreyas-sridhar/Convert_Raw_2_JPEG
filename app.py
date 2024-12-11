@@ -13,7 +13,7 @@ app = Flask(__name__)
 # Constants and Configuration
 UPLOAD_FOLDER = os.path.abspath('uploads')
 OUTPUT_FOLDER = os.path.abspath('outputs')
-ALLOWED_EXTENSIONS = {'.nef', '.cr2', '.arw', '.raw', '.dng', '.raf', '.3fr', '.dcr', '.k25', '.kdc', '.mrw', '.pef', '.srw', '.x3f','.HEIC'}
+ALLOWED_EXTENSIONS = {'.nef', '.cr2', '.arw', '.raw', '.dng', '.raf', '.3fr', '.dcr', '.k25', '.kdc', '.mrw', '.pef', '.srw', '.x3f'}
 
 # Ensure directories exist
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
