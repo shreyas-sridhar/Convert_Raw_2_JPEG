@@ -15,7 +15,7 @@ This application converts raw image files into JPEG format using Flask. It provi
 
 2. Install the required packages:
    ```bash
-   pip install Flask rawpy imageio
+   pip install -r requirements.txt
    ```
 
 3. Ensure you have `ffmpeg` installed for image processing.
